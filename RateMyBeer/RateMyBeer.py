@@ -1,102 +1,230 @@
 import pymysql
-from flask import Flask, request
+from flask import Flask, request, render_template, jsonify
 import json
 from flask_cors import CORS
+import hashlib
+import uuid
 
-app = Flask(__name__)
+app = Flask(__name__, static_url_path='/static')
 CORS(app=app)
 app.debug = True
-db = pymysql.connect(host='localhost', user='root', password='', database='dsci551')
-cursor = db.cursor()  # create curosr
+db1 = pymysql.connect(host='localhost', user='root', password='hhwswhrO1209', database='ratemybeer1')
+db2 = pymysql.connect(host='localhost', user='root', password='hhwswhrO1209', database='ratemybeer2')
+cursor1 = db1.cursor()  # create curosr
+cursor2 = db2.cursor()  # create curosr
 
 
-@app.route('/add', methods=['post'])
-def add():
-    req_data = request.get_data()
-    data = json.loads(req_data)
-    print(data)
-    try:
-        sql_data = (float(data['beer_ABV']), int(data['beer_beerId']), int(data['beer_brewerId']), data['beer_name']
-                    , data['beer_style'], float(data['review_appearance']), float(data['review_palette']), float(data['review_overall'])
-                    , float(data['review_taste']), data['review_profileName'], float(data['review_aroma']), data['review_text']
-                    , int(data['review_time']))
-        sql = "insert into beer(beer_ABV,beer_beerId,beer_brewerId,beer_name ,beer_style,review_appearance," \
-              "review_palette,review_overall,review_taste,review_profileName,review_aroma," \
-              "review_text,review_time) " \
-              "values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)"
-
-        cursor.execute(sql, sql_data)
-        db.commit()
-        return {'code': 200, 'msg': 'Add data success'}
-    except Exception as e:
-        print("error:", e)
-        db.rollback()
-        return {'code': 1000, 'msg': "Add data fail"}
 
 
-@app.route('/del', methods=['delete'])
-def delete():
-    deleteId = request.args.get('beer_beerId')
-    sql = f'delete from `beer` where beer_beerId="{deleteId}";'
-    try:
-        cursor.execute(sql)
-        db.commit()
-        return {'code': 200, 'msg': 'Delete success'}
-    except Exception as e:
-        print("error:", e)
-        db.rollback()
-        return {'code': 1000, 'msg': "Delete Fail"}
+def hash_uuid(uuid_str):
+    # use SHA-256 hash function
+    hash_value = hashlib.sha256(uuid_str.encode()).hexdigest()
+    # int last character
+    last_digit = int(hash_value[-1], 16)
+    # do hash
+    if last_digit % 2 == 0:
+        return "db1"
+    else:
+        return "db2"
 
 
-@app.route('/edit', methods=['put'])
-def edit():
-    req_data = request.get_data()
-    data = json.loads(req_data)
-    print('Change：', data)
-    try:
-        sql = f"update beer set review_text='{data['new_review']}' where beer_beerId='{data['id']}'"
-        cursor.execute(sql)
-        db.commit()
-        return {'code': 200, 'msg': 'Update success'}
-    except Exception as e:
-        print("error:", e)
-        db.rollback()
-        return {'code': 1000, 'msg': "Update Fail"}
 
 
-@app.route('/select', methods=['get'])
+@app.route('/add_review', methods=['POST'])
+def add_review():
+    # get review
+    data = request.json
+
+    # check data
+    if 'beername' not in data or 'beertype' not in data or 'review_text' not in data or 'rating' not in data:
+        return jsonify({"error": "beername, beertype, review_text, and rating are required"}), 400
+
+    # extract data
+    beername = data['beername']
+    beertype = data['beertype']
+    review_text = data['review_text']
+    rating = data['rating']
+
+    # extract beer from either beer table
+    cursor1.execute("SELECT beer_id FROM beer WHERE beer_name = %s AND beer_type = %s", (beername, beertype))
+    existing_beer = cursor1.fetchone()
+
+    if not existing_beer:
+        # if it's a new beer
+        beer_id = str(uuid.uuid4())  # 使用 uuid 库生成唯一的 beer_id
+        cursor1.execute("INSERT INTO beer (beer_id, beer_name, beer_type) VALUES (%s, %s, %s)",
+                       (beer_id, beername, beertype))
+        db1.commit()
+        cursor2.execute("INSERT INTO beer (beer_id, beer_name, beer_type) VALUES (%s, %s, %s)",
+                        (beer_id, beername, beertype))
+        db2.commit()
+    else:
+        # if it's a existing beer
+        beer_id = existing_beer[0]
+    print(beer_id, "aaaaaaa")
+
+    # generate uuid
+    review_id = str(uuid.uuid4())
+    db_name = hash_uuid(review_id)
+    print(db_name, 'bbbbbbb')
+    if db_name == 'db1':
+        # insert into db1
+        cursor1.execute("INSERT INTO Review (review_id, beer_id, review_text, rating) VALUES (%s, %s, %s, %s)",
+                        (review_id, beer_id, review_text, rating))
+        db1.commit()
+        return jsonify({"message": "Review added into db1 successfully"})
+    else:
+        # insert into db2
+        cursor2.execute("INSERT INTO Review (review_id, beer_id, review_text, rating) VALUES (%s, %s, %s, %s)",
+                        (review_id, beer_id, review_text, rating))
+        db2.commit()
+        return jsonify({"message": "Review added into db2 successfully"})
+
+
+
+@app.route('/delete_review', methods=['DELETE'])
+def delete_review():
+    # get data
+    data = request.json
+
+    # check review_id
+    if 'review_id' not in data:
+        return jsonify({"error": "review_id is required"}), 400
+
+    # extract review_id
+    review_id = data['review_id']
+
+    # find out which database to operate
+    assigned_db = hash_uuid(review_id)
+
+    # delete review data
+    if assigned_db == "db1":
+        db_connection = db1
+        db_name = "db1"
+    else:
+        db_connection = db2
+        db_name = "db2"
+
+    cursor = db_connection.cursor()
+
+    # construct SQL
+    delete_query = "DELETE FROM Review WHERE review_id = %s"
+
+    # execute SQL
+    cursor.execute(delete_query, (review_id,))
+    db_connection.commit()
+
+    return jsonify({"message": f"Review deleted successfully from {db_name}"})
+
+
+
+
+@app.route('/update_review', methods=['POST'])
+def update_review():
+    # get data
+    data = request.json
+
+    # check review_id
+    if 'review_id' not in data:
+        return jsonify({"error": "review_id is required"}), 400
+
+    # extract data
+    review_id = data['review_id']
+    review_text = data.get('review_text')
+    rating = data.get('rating')
+
+    # find out which to operate
+    assigned_db = hash_uuid(review_id)
+
+    # update review
+    if assigned_db == "db1":
+        db_connection = db1
+    else:
+        db_connection = db2
+
+    cursor = db_connection.cursor()
+
+    # construct SQL
+    update_query = "UPDATE Review SET "
+    update_values = []
+
+    if review_text:
+        update_query += "review_text = %s, "
+        update_values.append(review_text)
+    if rating:
+        update_query += "rating = %s, "
+        update_values.append(rating)
+
+    # delete last ","
+    update_query = update_query.rstrip(', ')
+
+    # add filter
+    update_query += " WHERE review_id = %s"
+    update_values.append(review_id)
+
+    # execute
+    cursor.execute(update_query, update_values)
+    db_connection.commit()
+
+    return jsonify({"message": f"Review updated successfully in {assigned_db}"})
+
+
+@app.route('/select', methods=['GET'])
 def select():
-    try:
-        cursor.execute("SELECT * FROM beer LIMIT 10")
-        array = []
-        data = ()
-        while isinstance(data, tuple):  # do for loop to get data
-            data = cursor.fetchone()  # fetchone to get single line of table
-            if (data == None): break
-            obj = {}
-            obj['beer_ABV'] = data[0]
-            obj['beer_beerId'] = data[1]
-            obj['beer_brewerId'] = data[2]
-            obj['beer_name'] = data[3]
-            obj['beer_style'] = data[4]
-            obj['review_appearance'] = data[5]
-            obj['review_palette'] = data[6]
-            obj['review_overall'] = data[7]
-            obj['review_taste'] = data[8]
-            obj['review_profileName'] = data[9]
-            obj['review_aroma'] = data[10]
-            obj['review_text'] = data[11]
-            obj['review_time'] = data[12]
+    # get filter
+    filter_data = request.args
 
-            array.append(obj)
-        return {'code': 200, 'msg': 'Select Success!', 'data': array}
-    except Exception as e:
-        print("error: ", e)
-        db.rollback()
-        return {'code': 1000, 'msg': "select Fail"}
+    # construct SQL
+    sql_query = "SELECT Review.review_id, Review.beer_id, beer.beer_name, beer.beer_type, Review.review_text, Review.rating FROM Review INNER JOIN beer ON Review.beer_id = beer.beer_id"
+
+    # construct filter
+    conditions = []
+    values = []
+
+    if 'beer_name' in filter_data:
+        conditions.append("beer.beer_name = %s")
+        values.append(filter_data['beer_name'])
+
+    if 'beer_type' in filter_data:
+        conditions.append("beer.beer_type = %s")
+        values.append(filter_data['beer_type'])
+
+    if 'rating_min' in filter_data:
+        conditions.append("Review.rating >= %s")
+        values.append(filter_data['rating_min'])
+
+    if 'rating_max' in filter_data:
+        conditions.append("Review.rating <= %s")
+        values.append(filter_data['rating_max'])
+
+    if conditions:
+        sql_query += " WHERE " + " AND ".join(conditions)
+
+    # add limit condition
+    if 'limit' in filter_data:
+        limit = int(filter_data['limit'])
+        sql_query += " LIMIT %s"
+        values.append(limit)
+
+    # execute
+    cursor1.execute(sql_query, values)
+    results_db1 = cursor1.fetchall()
+    cursor2.execute(sql_query, values)
+    results_db2 = cursor2.fetchall()
+
+    # 合并两个数据库的结果
+    merged_results = results_db1 + results_db2
+
+    return jsonify(merged_results)
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
 
 
 if __name__ == '__main__':
     app.run(host="localhost", port='8090')
-    cursor.close()
-    db.close()
+    cursor1.close()
+    db1.close()
