@@ -1,0 +1,281 @@
+:root {
+    --primary-color: #007bff;
+    --text-color: #333;
+    --background-color: #f8f9fa;
+    --btn-hover-color: #0056b3;
+    --btn-text-color: #fff;
+    --section-padding: 20px;
+    --border-radius: 5px;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap');
+
+body {
+    font-family: 'Roboto', sans-serif;
+}
+
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.container {
+    max-width: 800px;
+    margin: auto;
+    padding: 20px;
+}
+.container section{
+    margin: -30px;
+}
+
+h1 {
+    color: var(--text-color);
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.section {
+    background-color: #fff;
+    padding: var(--section-padding);
+    margin-bottom: 20px;
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.toast {
+    position: fixed;
+    top: 20%; /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    color: var(--btn-text-color); /* white color */
+    background-color: var(--primary-color); /* primary color */
+    border-radius: var(--border-radius);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.5s, top 0.5s;
+}
+
+.toast.show {
+    top: 25%; /* Adjust to make it slightly lower when showing */
+    opacity: 1;
+}
+
+
+.form, .action-input {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+
+input, .btn {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: var(--border-radius);
+    margin: 5px 0;
+}
+
+.btn {
+    background-color: var(--primary-color);
+    color: var(--btn-text-color);
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.btn:hover {
+    background-color: var(--btn-hover-color);
+}
+
+.data-display {
+    margin-top: 20px;
+}
+
+@media (max-width: 768px) {
+    .form, .action-input {
+        flex-direction: column;
+    }
+}
+#manageForm {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+}
+
+#manageForm input, #manageForm select, #manageForm .btn {
+    flex: 1;
+    /* Adjust flex-basis as needed for better control of width */
+    min-width: 120px; /* This ensures inputs don't get too small on narrow screens */
+}
+
+#manageForm input#beer_name {
+    flex: 1;
+    min-width: 75px;
+}
+
+
+@media (max-width: 768px) {
+    #manageForm {
+        flex-direction: row;
+        flex-wrap: wrap;
+    }
+
+    #manageForm input, #manageForm select, #manageForm .btn {
+        flex: none;
+        width: 100%;
+    }
+}
+.table-container {
+    margin-top: 20px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #007bff;
+    color: white;
+}
+
+.review-input {
+    padding: 8px;
+    border-radius: var(--border-radius);
+    border: 1px solid #ccc;
+    width: 80%;
+}
+
+.modal {
+    position: fixed;
+    left: 80%;
+    top: 125%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    /*background-color: rgba(0, 0, 0, 0.5);*/
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1050;
+}
+
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 5px;
+    width: 90%;
+    max-width: 500px;
+}
+
+.modal-header,
+.modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.modal-title {
+    margin: 0;
+}
+
+.close-button {
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: large;
+}
+
+.input-group {
+    margin: 10px 0;
+}
+
+.input-label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.modal-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Custom styling for confirmation dialog */
+.confirmation-dialog {
+    font-size: 16px; /* Adjust the font size as needed */
+}
+
+.confirmation-dialog button {
+    font-size: 16px; /* Adjust the font size of buttons as needed */
+    padding: 10px 10px; /* Adjust padding as needed */
+    background-color: #007bff; /* Example background color */
+    color: #fff; /* Example text color */
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.confirmation-dialog button:hover {
+    background-color: #0056b3; /* Example hover background color */
+}
+
+#updateModal h4{
+    text-align: center;
+}
+#updateModal .close{
+    cursor: pointer;
+    float: right;
+}
+
+/* Custom styles for the add modal */
+#addModal {
+    width: 80%; /* Set the width of the modal */
+    max-width: 500px; /* Set the maximum width of the modal */
+    margin: auto; /* Center align the modal horizontally */
+    position: fixed;
+    bottom: 0; /* Position the modal at the bottom of the page */
+    left: 50%; /* Center align the modal horizontally */
+    transform: translateX(-50%);
+    padding-bottom: 325px; /* Add bottom padding to make space for the button */
+}
+
+#addModal .close{
+    cursor: pointer;
+    float: right;
+}
+
+/* Adjust modal content styles */
+#addModal .modal-content {
+    padding: 20px; /* Add padding to the modal content */
+    text-align: center; /* Center align the content */
+}
+
+/* Adjust input field styles */
+#addModal input[type="text"],
+#addModal input[type="number"],
+#addModal select {
+    width: 100%; /* Set the width of input fields to 100% */
+    padding: 10px; /* Add padding to input fields */
+    margin-bottom: 10px; /* Add margin between input fields */
+    box-sizing: border-box; /* Ensure padding and border are included in the width */
+}
+
+

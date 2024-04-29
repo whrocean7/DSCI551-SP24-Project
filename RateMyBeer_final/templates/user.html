@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beer Reviews Dashboard</title>
+    <link rel="stylesheet" href="/static/style_1.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Beer Reviews Dashboard</h1>
+        <section id="addData" class="section">
+            <h2>Manage Beer Reviews</h2>
+            <form id="manageForm" class="form">
+                <input type="text" id="beer_name" name="beer_name" placeholder="Beer Name" required>
+                <select id="beer_type" name="beer_type" required>
+                    <option value="">Select Type</option>
+                    <option value="ale">Ale</option>
+                    <option value="lager">Lager</option>
+                    <option value="stout">Stout</option>
+                    <!-- Add more beer types as needed -->
+                </select>
+                <input type="number" id="rating" name="rating" placeholder="Rating" min="0" max="5" step="1" required>
+                <input type="number" id="quantity" name="quantity" placeholder="Number of Reviews" required>
+                <button type="submit" class="btn">Select</button>
+            </form>
+            <div id="tableContainer" class="table-container">
+                <!-- Table will be inserted here -->
+            </div>
+        </section>
+    </div>
+
+    <!-- Add Review Modal -->
+    <div id="addModal" class="modal">
+        <div class="modal-content">
+            <span onclick="closeAddModal()" class="close">&times;</span>
+            <h4>Add Review</h4>
+            <form id="addForm">
+                <input type="text" id="modal_beer_name" placeholder="Beer Name" required>
+                <select id="modal_beer_type" required>
+                    <option value="">Select Type</option>
+                    <option value="ale">Ale</option>
+                    <option value="lager">Lager</option>
+                    <option value="stout">Stout</option>
+                </select>
+                <input type="text" id="modal_review_text" placeholder="Review Text" required>
+                <input type="number" id="modal_rating" placeholder="Rating" min="0" max="5" required>
+                <button type="submit">Submit Review</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Review Modal -->
+    <div id="updateModal" class="modal">
+        <div class="modal-content">
+            <span onclick="closeUpdateModal()" class="close">&times;</span>
+            <h4>Update Review</h4>
+            <form id="updateForm">
+                <input type="hidden" id="review_id">
+                <input type="text" id="review_text_update" placeholder="Review Text" required>
+                <input type="number" id="rating_update" placeholder="Rating" required>
+                <button type="submit">Update Review</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/static/script_user.js"></script>
+</body>
+</html>
