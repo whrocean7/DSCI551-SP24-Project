@@ -265,7 +265,7 @@ function submitAdd() {
 // Function to add a new review
 function addReview(review) {
     // Define the API base URL
-    const API_BASE_URL = 'http://localhost:8090';
+    const API_BASE_URL = 'http://localhost:8091';
 
     // Send a POST request to add the review
     fetch(`${API_BASE_URL}/add_review`, {

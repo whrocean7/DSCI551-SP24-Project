@@ -1,0 +1,23 @@
+[ratemybeer1]
+host=localhost
+user=root
+password=your password
+database=ratemybeer1
+
+[ratemybeer2]
+host=localhost
+user=root
+password=your password
+database=ratemybeer2
+
+[ratemybeer1_rep]
+host=localhost
+user=root
+password=your password
+database=ratemybeer1_rep
+
+[ratemybeer2_rep]
+host=localhost
+user=root
+password=your password
+database=ratemybeer2_rep
